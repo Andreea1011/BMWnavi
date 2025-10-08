@@ -5,8 +5,10 @@ package com.example.bmwnavi.ui.screen
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -27,6 +29,10 @@ private const val FRAME_WIDTH = 4f
 private const val PROGRESS_WIDTH = 10f
 private const val MINI_PROGRESS_WIDTH = 7f
 
+// --- Debug helpers ---
+private const val SHOW_DEBUG_TEXT = true              // set false to hide debug numbers
+private val FORCE_TEST_SPEED_LIMIT: Int? = null // e.g. set to 50 to force-show pill
+
 @Composable
 fun SpeedTabContent(
     speedKmh: Double,
@@ -35,6 +41,7 @@ fun SpeedTabContent(
     coolantC: Double,
     remainingKm: Int?,
     dateStr: String,
+    speedLimitKph: Int? = null,      // can be null (hidden)
     modifier: Modifier = Modifier
 ) {
     val vignette = MaterialTheme.colorScheme.surfaceVariant
@@ -51,6 +58,7 @@ fun SpeedTabContent(
                     )
                 )
             }
+
             DualHexGauge(
                 speedKmh = speedKmh.coerceIn(0.0, MAX_SPEED),
                 rpm = rpm.coerceIn(0.0, MAX_RPM),
@@ -58,7 +66,43 @@ fun SpeedTabContent(
                 coolantC = coolantC.coerceIn(0.0, 120.0),
                 modifier = Modifier.fillMaxSize()
             )
+
+            // === Centered "Speed limit" pill overlay ===
+            val limitToShow = FORCE_TEST_SPEED_LIMIT ?: speedLimitKph
+            if (limitToShow != null) {
+                Surface(
+                    tonalElevation = 8.dp,
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                    shape = MaterialTheme.shapes.large,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(8.dp)
+                ) {
+                    val over = speedKmh > limitToShow
+                    val color = if (over) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.primary
+                    Text(
+                        text = "Speed limit: ${limitToShow} km/h",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = color
+                    )
+                }
+            }
+
+            // --- bottom debug readout (helps verify values are changing) ---
+            if (SHOW_DEBUG_TEXT) {
+                Text(
+                    text = "spd=${"%.0f".format(speedKmh)}  rpm=${"%.0f".format(rpm)}  fuel=${"%.1f".format(fuelPercent)}%  cool=${"%.1f".format(coolantC)}°C",
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 48.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
+
         Spacer(Modifier.height(8.dp))
         Row(
             Modifier.fillMaxWidth(),

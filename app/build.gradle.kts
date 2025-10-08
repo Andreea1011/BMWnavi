@@ -52,4 +52,15 @@ dependencies {
     kapt(libs.hilt.compiler)
     // Coroutines (handy later)
     implementation(libs.kotlinx.coroutines.android)
+
+    // --- Networking ---
+    implementation(libs.retrofit)
+    //noinspection NewerVersionAvailable
+    implementation(libs.converter.moshi)
+    implementation("com.squareup.okhttp3:okhttp:5.2.0")
+    implementation(libs.logging.interceptor)
+
+// --- Moshi (JSON parser used by converter-moshi) ---
+    implementation(libs.moshi)
+    kapt("com.squareup.moshi:moshi-kotlin-codegen:1.15.2")
 }
